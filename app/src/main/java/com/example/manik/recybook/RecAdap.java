@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.lang.reflect.Member;
 import java.util.List;
 
 public class RecAdap extends RecyclerView.Adapter<RecAdap.ViewHolder>  {
@@ -71,6 +72,9 @@ public class RecAdap extends RecyclerView.Adapter<RecAdap.ViewHolder>  {
         return list.size();
     }
 
+    public List<BookObject> getMembersEntries() {
+        return list;
+    }
 
 
     public class ViewHolder extends RecyclerView.ViewHolder {

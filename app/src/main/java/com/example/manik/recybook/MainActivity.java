@@ -1,10 +1,14 @@
 package com.example.manik.recybook;
 
 import android.content.Intent;
+import android.net.Uri;
+import android.support.customtabs.CustomTabsIntent;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -27,7 +31,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG ="HEREEEEEEEEEEEEEEE" ;
+    public static final String TAG = "HEREEEEEEEEEEEEEEE";
     private TextView mEmptyStateTextView;
     RecyclerView recyclerView;
     List<BookObject> list;
@@ -43,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.all_books);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+
         loadingIndicator = findViewById(R.id.loading_spinner);
         loadingIndicator.setVisibility(View.VISIBLE);
 
@@ -52,10 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
-
-
-
 
 
     private void loadData() {
@@ -98,36 +99,55 @@ public class MainActivity extends AppCompatActivity {
                                     jUrl = volumeInfo.getString("previewLink");
                                 }
 
-                                String jAuthor ="";
+                                String jAuthor = "";
                                 if (volumeInfo.has("authors")) {
                                     JSONArray authorArray = volumeInfo.getJSONArray("authors");
                                     jAuthor = authorArray.getString(0);
                                 }
 
                                 String jCategories = "";
-                                if(volumeInfo.has("categories")){
-                                JSONArray catArray = volumeInfo.getJSONArray("categories");
+                                if (volumeInfo.has("categories")) {
+                                    JSONArray catArray = volumeInfo.getJSONArray("categories");
 
 
-                                if (catArray.length() != 0) {
-                                    jCategories = catArray.getString(0);
-                                }else {
-                                    jCategories=".....";
-                                }}
-
-
-                                String iurl=null;
-                                if(volumeInfo.has("imageLinks")){
-                                    JSONObject img=volumeInfo.getJSONObject("imageLinks");
-                                    iurl =img.getString("smallThumbnail");
+                                    if (catArray.length() != 0) {
+                                        jCategories = catArray.getString(0);
+                                    } else {
+                                        jCategories = ".....";
+                                    }
                                 }
 
-                                BookObject book = new BookObject(jTitle, jAuthor, jDispriction, jCategories, jUrl, jRating, jPages,iurl);
+
+                                String iurl = null;
+                                if (volumeInfo.has("imageLinks")) {
+                                    JSONObject img = volumeInfo.getJSONObject("imageLinks");
+                                    iurl = img.getString("smallThumbnail");
+                                }
+
+                                BookObject book = new BookObject(jTitle, jAuthor, jDispriction, jCategories, jUrl, jRating, jPages, iurl);
                                 list.add(book);
                             }
                             recAdap = new RecAdap(list, getApplicationContext());
                             recyclerView.setAdapter(recAdap);
                             loadingIndicator.setVisibility(View.GONE);
+
+                            new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                                @Override
+                                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                                    return false;
+                                }
+
+                                @Override
+                                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                                    int book =viewHolder.getAdapterPosition();
+                                    List <BookObject> b = recAdap.getMembersEntries();
+                                    BookObject currentBook = b.get(book);
+                                    String u =  currentBook.getmUrl();
+                                    openSite(u);
+                                    recAdap.notifyDataSetChanged();
+                                }
+                            }).attachToRecyclerView(recyclerView);
+
                         } catch (JSONException e) {
                             Log.e("QueryUtils", "Problem parsing the JSON results", e);
                         }
@@ -138,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
 
-                        Toast.makeText(getApplicationContext(),error.getMessage(),Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -150,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
         Bundle bu = getIntent().getExtras();
         String a = bu.getString("search");
         setTitle(a);
-        String b = "https://www.googleapis.com/books/v1/volumes?q=" + a + "&maxResults=25";
+        String b = "https://www.googleapis.com/books/v1/volumes?q=" + a + "&maxResults=40";
         return b;
     }
 
@@ -160,5 +180,20 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void openSite(String u) {
+        Uri url = Uri.parse(u);
 
+        CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
+        intentBuilder.setToolbarColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+        intentBuilder.setSecondaryToolbarColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimaryDark));
+        intentBuilder.setStartAnimations(MainActivity.this, R.anim.slide_in_right, R.anim.slide_out_left);
+        intentBuilder.setExitAnimations(MainActivity.this, android.R.anim.slide_in_left,
+                android.R.anim.slide_out_right);
+        CustomTabsIntent customTabsIntent = intentBuilder.build();
+
+        customTabsIntent.launchUrl(MainActivity.this, url);
+    }
 }
+
+
+

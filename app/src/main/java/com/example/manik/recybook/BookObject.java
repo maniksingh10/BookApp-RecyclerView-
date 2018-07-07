@@ -21,7 +21,7 @@ public class BookObject {
         this.mRating = mRating;
         this.mPages = mPages;
         if (mImgUrl==null){
-            this.mImgUrl="https://lh5.googleusercontent.com/lvbDw-twhVBMerTFVArSPWU9cAfIdNimvjzDCxd56BYtXM54VIGUoF_hhtcU8n6lSk-XgfpXwvujgWiwNH7i=w1366-h613";
+            this.mImgUrl="https://github.com/maniksingh10/BookApp-RecyclerView-/blob/master/NoImageFound.jpg";
         }else{
             this.mImgUrl=mImgUrl;
         }
